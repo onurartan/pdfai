@@ -1,0 +1,1 @@
+DEJAVUFONT_PATH = "fonts\\DejaVuSans.ttf"
