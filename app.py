@@ -8,6 +8,7 @@ from reportlab.pdfbase import pdfmetrics
 
 from utils.generate_pdf import generate_pdf
 from utils.generate_pdf_fark import generate_pdf_fark
+from utils.update_pdf import update_pdf_with_prices
 
 from utils.pdf import extract_product_info, extract_text_from_pdf_page, pdf_to_images
 
@@ -54,13 +55,15 @@ def main():
         images = pdf_to_images(pdf_bytes, page_limit)
         products = []
         categories = {}
+        price_locations = []
 
         st.divider()
 
         for idx, img in enumerate(images):
             page = doc.load_page(idx)
             text = extract_text_from_pdf_page(page)
-            possible_names, possible_prices = extract_product_info(text)
+            possible_names, page_price_locations = extract_product_info(text, page)
+            price_locations.append(page_price_locations)
 
             st.subheader(f"Sayfa {idx + 1}")
             st.image(img, caption=f"Sayfa {idx + 1}", use_container_width=True)
@@ -77,9 +80,9 @@ def main():
                 selected_name = st.selectbox(
                     f"Ürün {i+1} Adı", possible_names, index=0, key=f"name_{idx}_{i}"
                 )
-                selected_price = st.selectbox(
+                selected_price_loc = st.selectbox(
                     f"Ürün {i+1} Fiyatı",
-                    possible_prices,
+                    [loc["price"] for loc in page_price_locations],
                     index=2,
                     key=f"price_{idx}_{i}",
                 )
@@ -98,8 +101,8 @@ def main():
                 )
                 add_page_products = add_page_products == "Evet"
 
-                if selected_price:
-                    final_price = apply_percentage(selected_price, percentage)
+                if selected_price_loc:
+                    final_price = apply_percentage(selected_price_loc, percentage)
                 else:
                     final_price = "Bilinmiyor"
 
@@ -111,7 +114,7 @@ def main():
                     {
                         "name": selected_name,
                         "price": final_price,
-                        "orjinal_fiyat": selected_price,
+                        "orjinal_fiyat": selected_price_loc,
                     }
                 )
 
@@ -128,6 +131,20 @@ def main():
             "PDF Raporunu İndir",
             data=pdf_report,
             file_name="urun_fiyat_raporu.pdf",
+            mime="application/pdf",
+        )
+
+        st.divider()
+
+        updated_pdf = update_pdf_with_prices(
+            pdf_bytes, products, price_locations, page_limit
+        )
+
+        st.subheader("Güncellenmiş PDF Hazır")
+        st.download_button(
+            "Güncellenmiş PDF’yi İndir",
+            data=updated_pdf,
+            file_name="guncellenmis_urun_fiyatlari.pdf",
             mime="application/pdf",
         )
 

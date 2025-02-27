@@ -5,6 +5,8 @@ from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
 
+from utils.convert import usd_to_try
+
 
 def generate_pdf(products, categories):
     buffer = BytesIO()
@@ -17,11 +19,11 @@ def generate_pdf(products, categories):
     title_style.fontName = "DejaVuSans"
     elements.append(Paragraph("Ürün Fiyat Raporu", title_style))
 
-    data = [["Ürün Adı", "Kategori", "Fiyat (USD)"]]
+    data = [["Ürün Adı", "Kategori", "Fiyat (TL)"]]
 
     for p in products:
         category = categories.get(p["name"], "Belirtilmedi")
-        data.append([p["name"], category, str(p["price"])])
+        data.append([p["name"], category, usd_to_try(p["price"])])
 
     table = Table(
         data,

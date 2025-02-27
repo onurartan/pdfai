@@ -5,6 +5,7 @@ from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
 
+from utils.convert import usd_to_try
 
 def generate_pdf_fark(products, categories):
     buffer = BytesIO()
@@ -17,7 +18,7 @@ def generate_pdf_fark(products, categories):
     title_style.fontName = "DejaVuSans"
     elements.append(Paragraph("Ürün Fiyat Farkı Raporu", title_style))
 
-    data = [["Ürün Adı", "Kategori", "Fiyat (USD)", "Orjinal Fiyat (USD)", "Fark"]]
+    data = [["Ürün Adı", "Kategori", "Fiyat (TL)", "Orjinal Fiyat (TL)", "Fark"]]
 
     for p in products:
         category = categories.get(p["name"], "Belirtilmedi")
@@ -38,7 +39,7 @@ def generate_pdf_fark(products, categories):
         else:
             fark_str = "Bilinmiyor"
 
-        data.append([p["name"], category, str(price), str(orjinal_fiyat), fark_str])
+        data.append([p["name"], category, usd_to_try(price), usd_to_try(orjinal_fiyat), usd_to_try(fark_str)])
 
     # Tabloyu oluştur
     table = Table(
